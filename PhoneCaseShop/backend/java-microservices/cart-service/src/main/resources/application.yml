@@ -1,0 +1,36 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: cart-service
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=PhoneCaseShop;encrypt=false;trustServerCertificate=true
+    username: sa
+    password: Thothang28@
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    # Retry configuration - services will retry connecting to Eureka
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 10
+    registry-fetch-interval-seconds: 10
+  instance:
+    # Don't fail startup if Eureka is not available
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    # Use IP address instead of hostname to avoid DNS resolution issues
+    prefer-ip-address: true
+    hostname: localhost
+
+

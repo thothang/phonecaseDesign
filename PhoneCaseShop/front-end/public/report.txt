@@ -1,0 +1,361 @@
+================================================================================
+                    CHƯƠNG 3: HIỆN THỰC HỆ THỐNG
+================================================================================
+
+3.1 MIÊU TẢ TỔNG QUAN
+================================================================================
+
+Hệ thống PhoneCaseShop là một ứng dụng web bán lẻ ốp lưng điện thoại với các 
+tính năng:
+- Cho phép người dùng xem, tìm kiếm và đặt hàng sản phẩm
+- Tùy chỉnh thiết kế ốp lưng theo ý muốn (custom design)
+- Quản lý giỏ hàng và đơn hàng
+- Xác thực người dùng (authentication)
+- Trang quản trị dành cho admin
+
+Hệ thống được xây dựng theo kiến trúc Single Page Application (SPA) với 
+React làm nền tảng front-end, sử dụng Mock Service Worker (MSW) để mô phỏng 
+API trong môi trường phát triển.
+
+
+3.2 GIAO DIỆN NGƯỜI DÙNG (FRONT-END)
+================================================================================
+
+3.2.1 Công nghệ sử dụng
+--------------------------------------------------------------------------------
+
+A. CÔNG NGHỆ NỀN TẢNG:
+
+1. React 19.1.1
+   - Thư viện JavaScript để xây dựng giao diện người dùng
+   - Sử dụng functional components và hooks
+   - Quản lý state và lifecycle components
+
+2. Vite 7.1.7
+   - Build tool hiện đại, nhanh cho các dự án web
+   - Hỗ trợ Hot Module Replacement (HMR) để phát triển nhanh
+   - Tối ưu hóa bundle cho production
+
+3. React Router DOM 7.9.4
+   - Quản lý routing và navigation trong ứng dụng
+   - Hỗ trợ dynamic routing với parameters
+   - Cung cấp navigation hooks như useNavigate
+
+B. QUẢN LÝ STATE VÀ DATA FETCHING:
+
+1. TanStack React Query (v5.90.10)
+   - Quản lý server state và caching
+   - Tự động refetch và background updates
+   - Optimistic updates cho UX tốt hơn
+   - Cấu hình staleTime: 5 phút
+
+2. Context API (Built-in React)
+   - AuthContext: Quản lý trạng thái đăng nhập
+   - CartModalContext: Quản lý modal giỏ hàng
+   - Lưu trữ state vào localStorage
+
+C. HTTP CLIENT & API MOCKING:
+
+1. Axios 1.13.2
+   - Thư viện HTTP client
+   - Hỗ trợ interceptors và transform data
+   - Xử lý request/response headers (Authorization)
+
+2. Mock Service Worker (MSW) 2.12.2
+   - Mô phỏng API endpoints trong development
+   - Intercept network requests ở service worker level
+   - Tạo mock handlers cho tất cả API endpoints
+
+D. UI/UX LIBRARIES:
+
+1. TailwindCSS 4.1.14
+   - Utility-first CSS framework
+   - Responsive design
+   - Custom configuration với @tailwindcss/vite
+
+2. Lucide React 0.545.0
+   - Thư viện icons hiện đại
+   - Sử dụng trong navigation, buttons, forms
+   - Icons: Users, ShoppingCart, Package, Menu, Search, etc.
+
+E. BUILD & DEVELOPMENT TOOLS:
+
+1. PostCSS với Autoprefixer
+   - Xử lý CSS compatibility
+   - Auto-prefix cho các trình duyệt
+
+2. ESLint
+   - Linting code JavaScript/React
+   - Plugins: react-hooks, react-refresh
+
+
+3.3 CẤU TRÚC THƯ MỤC DỰ ÁN
+================================================================================
+
+front-end/
+│
+├── public/                      # Static assets
+│   ├── mockServiceWorker.js    # MSW service worker
+│   └── report.txt             # File báo cáo này
+│
+├── src/                        # Source code chính
+│   │
+│   ├── api/                    # API service layer
+│   │   ├── cartAPI.js         # Cart API calls
+│   │   ├── designApi.js       # Design API calls
+│   │   ├── orderAPI.js        # Order API calls
+│   │   ├── productApi.js      # Product API calls
+│   │   └── userApi.js         # User & Admin API calls
+│   │
+│   ├── components/            # Reusable components
+│   │   ├── CartAddModal/      # Modal thêm vào giỏ hàng
+│   │   ├── FilterSidebar/     # Sidebar lọc sản phẩm
+│   │   ├── Footer/            # Footer component
+│   │   ├── HeroBanner/        # Banner trang chủ
+│   │   ├── Navbar/            # Navigation bar
+│   │   └── ProductCard/       # Card hiển thị sản phẩm
+│   │
+│   ├── context/               # React Context
+│   │   ├── AuthContext.jsx    # Authentication context
+│   │   ├── CartModalContext.jsx
+│   │   ├── CartModalContextValue.js
+│   │   └── useCartModal.jsx
+│   │
+│   ├── hook/                  # Custom React Hooks
+│   │   ├── useAdmin.js        # Admin data fetching
+│   │   ├── useCart.js         # Cart operations
+│   │   ├── useDesign.js       # Design operations
+│   │   ├── useOrder.js        # Order operations
+│   │   ├── useProduct.js      # Product data
+│   │   └── useUser.js         # User operations
+│   │
+│   ├── mocks/                 # MSW mock configuration
+│   │   ├── browser.js         # MSW browser setup
+│   │   ├── handlers.js        # Mock API handlers
+│   │   └── mockData.js        # Mock data definitions
+│   │
+│   ├── pages/                 # Page components
+│   │   ├── AdminDashboard/    # Trang quản trị
+│   │   ├── AdminLogin/        # Đăng nhập admin
+│   │   ├── Blog/              # Trang blog
+│   │   ├── Cart/              # Trang giỏ hàng
+│   │   ├── Contact/           # Trang liên hệ
+│   │   ├── DesighPhoneCase/   # Tùy chỉnh thiết kế
+│   │   ├── EditUser/          # Chỉnh sửa thông tin user
+│   │   ├── Home/              # Trang chủ
+│   │   ├── Login/             # Đăng nhập
+│   │   ├── Order/             # Đặt hàng
+│   │   ├── OrderProcess/      # Xử lý đơn hàng
+│   │   ├── PersonalDesign/    # Thiết kế cá nhân
+│   │   ├── ProductSearch/     # Tìm kiếm sản phẩm
+│   │   ├── Register/          # Đăng ký
+│   │   └── UserDetails/       # Thông tin user
+│   │
+│   ├── util/                  # Utility functions
+│   │
+│   ├── App.jsx               # Root component
+│   ├── App.css               # Global styles
+│   ├── main.jsx              # Entry point
+│   └── index.css             # Base CSS
+│
+├── package.json              # Dependencies
+├── vite.config.js            # Vite configuration
+└── tailwind.config.js        # Tailwind configuration
+
+
+3.3.1 Thiết kế giao diện và luồng tương tác
+================================================================================
+
+A. KIẾN TRÚC ROUTING:
+
+Ứng dụng sử dụng React Router với các routes chính:
+
+1. PUBLIC ROUTES (Người dùng chưa đăng nhập):
+   - "/" - Trang chủ
+   - "/product" - Tìm kiếm sản phẩm
+   - "/blog" - Blog
+   - "/contact" - Liên hệ
+   - "/login" - Đăng nhập người dùng
+   - "/register" - Đăng ký tài khoản
+   - "/admin/login" - Đăng nhập admin
+
+2. PROTECTED ROUTES (Yêu cầu authentication):
+   - "/cart" - Giỏ hàng
+   - "/custom" - Tùy chỉnh thiết kế
+   - "/order" - Đặt hàng
+   - "/order-process" - Theo dõi đơn hàng
+   - "/personal-design" - Thiết kế cá nhân
+   - "/user/:id" - Thông tin người dùng
+   - "/user/edit/:id" - Chỉnh sửa thông tin
+   - "/admin/dashboard" - Trang quản trị
+
+B. LUỒNG XÁC THỰC (AUTHENTICATION FLOW):
+
+1. Người dùng thường:
+   Login Page → userApi.login() → Nhận token → Lưu vào AuthContext & localStorage
+   → Redirect đến trang mong muốn
+
+2. Admin:
+   AdminLogin → userApi.adminLogin() → Nhận admin token → AuthContext
+   → Redirect đến AdminDashboard
+   → checkAdminAuth() để verify token mỗi lần load dashboard
+
+3. Bảo mật API:
+   - Tất cả protected API calls đều gửi kèm Authorization header
+   - Format: "Authorization: Bearer {token}"
+   - Mock handlers verify token trước khi trả data
+   - Return 401 Unauthorized nếu token không hợp lệ
+
+C. LUỒNG QUẢN LÝ GIỎ HÀNG:
+
+1. Xem sản phẩm:
+   ProductSearch → ProductCard → Click "Thêm vào giỏ" → CartAddModal
+
+2. Thêm vào giỏ:
+   CartAddModal → Confirm → cartAPI.addToCart(token) → Invalidate cart query
+   → React Query tự động refetch → Update cart icon badge
+
+3. Xem giỏ hàng:
+   Navbar (cart icon) → Navigate to /cart → useCart hook
+   → cartAPI.getCart(userId, token) → Display cart items
+
+4. Checkout:
+   Cart page → "Đặt hàng" button → Navigate to /order
+   → Order page → useCreateOrder hook → orderAPI.createOrder(data, token)
+   → Navigate to /order-process
+
+D. LUỒNG CUSTOM DESIGN:
+
+1. Bắt đầu design:
+   Navigate to /custom → DesighPhoneCase page
+   → Chọn phone model → Design interface
+
+2. Lưu design:
+   Design complete → useDesign.saveDesign(designData, token)
+   → designApi.createDesign() → Response với design ID
+
+3. Xem các design đã lưu:
+   Navigate to /personal-design → useDesign.fetchUserDesigns(userId, token)
+   → Display design gallery
+
+E. LUỒNG ADMIN:
+
+1. Dashboard overview:
+   AdminDashboard → useAdminUsers, useAdminProducts, useAdminInventory
+   → Tất cả đều gửi token → Display statistics
+
+2. Tabs trong dashboard:
+   - Statistics: Tổng quan doanh thu, đơn hàng, khách hàng
+   - Users: Quản lý danh sách người dùng
+   - Products: Quản lý sản phẩm (case types)
+   - Inventory: Quản lý tồn kho
+   - Orders: Quản lý đơn hàng (đang phát triển)
+
+F. DATA FETCHING STRATEGY:
+
+1. React Query Configuration:
+   - staleTime: 5 phút (data được coi là fresh trong 5 phút)
+   - Caching tự động
+   - Background refetching khi window focus
+
+2. Custom Hooks Pattern:
+   Mỗi domain có custom hook riêng:
+   - useCart: ['cart', userId, token]
+   - useOrders: ['orders', userId, token]
+   - useUserDetails: ['user', userId, token]
+   - useAdminUsers: ['admin', 'users', token]
+
+3. Enabled Query:
+   Chỉ fetch khi có đủ dependencies:
+   enabled: !!userId && !!auth?.token
+
+4. Optimistic Updates:
+   - Cart operations: Invalidate queries on success
+   - Order creation: Invalidate cart và orders queries
+
+G. COMPONENT COMPOSITION:
+
+1. Layout Structure:
+   App
+   ├── AuthProvider (Context wrapper)
+   │   ├── CartModalProvider
+   │   │   ├── CartAddModal (Global modal)
+   │   │   ├── Navbar (Persistent)
+   │   │   ├── Routes (Page content)
+   │   │   └── Footer (Persistent)
+
+2. Reusable Components:
+   - ProductCard: Hiển thị sản phẩm với image, price, actions
+   - FilterSidebar: Bộ lọc sản phẩm theo brand, price range
+   - CartAddModal: Confirm dialog khi thêm sản phẩm
+   - Navbar: Navigation với cart badge, user menu
+
+3. Page Components:
+   Mỗi page tự quản lý state và data fetching thông qua hooks
+
+H. MOCK API SIMULATION:
+
+1. MSW Setup:
+   - Khởi tạo trong main.jsx với enableMocking()
+   - Chỉ hoạt động trong development mode (import.meta.env.DEV)
+   - Service worker intercept tất cả /api/* requests
+
+2. Mock Handlers Coverage:
+   - POST /api/login - User login
+   - POST /api/admin/login - Admin login
+   - GET /api/admin/check-auth - Verify admin token
+   - GET /api/cart - Get cart items (requires token)
+   - GET /api/users/:userId - Get user info (requires token)
+   - PUT /api/users/:userId - Update user (requires token)
+   - POST /api/orders - Create order (requires token)
+   - GET /api/orders - Get user orders (requires token)
+   - GET /api/orders/:orderId - Get order detail (requires token)
+   - POST /api/designs - Create design (requires token)
+   - GET /api/designs - Get user designs (requires token)
+   - GET /api/admin/users - Get all users (requires admin token)
+   - GET /api/admin/products - Get products (requires admin token)
+   - GET /api/admin/inventory - Get inventory (requires admin token)
+
+3. Authentication Simulation:
+   - Mock token: "mock-jwt-token" (user)
+   - Admin token: "mock-admin-jwt-token"
+   - Handlers verify "Authorization: Bearer {token}" header
+   - Return 401 nếu unauthorized
+
+I. SECURITY MEASURES:
+
+1. Token-based Authentication:
+   - JWT tokens lưu trong AuthContext và localStorage
+   - Tự động include trong API requests
+   - Token validation ở mock handlers
+
+2. Protected Routes:
+   - Admin routes yêu cầu admin token
+   - User routes yêu cầu user authentication
+   - Redirect về login nếu unauthorized
+
+3. API Layer Security:
+   - Tất cả sensitive endpoints yêu cầu token
+   - Token passed qua headers, không qua URL
+   - Consistent error handling (401 Unauthorized)
+
+================================================================================
+                              KẾT LUẬN
+================================================================================
+
+Hệ thống front-end PhoneCaseShop được xây dựng với kiến trúc hiện đại, sử dụng
+React làm nền tảng kết hợp với các thư viện mạnh mẽ như React Query, React 
+Router, và TailwindCSS. 
+
+Ứng dụng tuân theo các best practices:
+- Component-based architecture
+- Custom hooks để tái sử dụng logic
+- Centralized state management với Context API
+- Server state management với React Query
+- Token-based authentication
+- Mock API với MSW cho development
+- Responsive design với TailwindCSS
+
+Cấu trúc thư mục rõ ràng, phân tách concerns giữa UI components, business logic
+(hooks), API layer, và pages. Điều này giúp code dễ maintain và scale trong
+tương lai.

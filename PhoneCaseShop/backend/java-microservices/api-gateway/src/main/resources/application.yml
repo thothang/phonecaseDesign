@@ -1,0 +1,244 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  # Force reactive web application type for Spring Cloud Gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      routes:
+        # Auth Service - Login/Register (matching frontend)
+        # Only handle POST requests for login/register
+        - id: auth-login
+          uri: lb://auth-service
+          predicates:
+            - Path=/login
+            - Method=POST
+          filters:
+            - RewritePath=/login, /auth/login
+        
+        - id: auth-register
+          uri: lb://auth-service
+          predicates:
+            - Path=/register
+            - Method=POST
+          filters:
+            - RewritePath=/register, /auth/register
+        
+        # Auth Service - Other endpoints
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - RewritePath=/api/auth/(?<segment>.*), /auth/$\{segment}
+        
+        # User Service - Exact match for /api/users
+        - id: user-service-exact
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users
+          filters:
+            - RewritePath=/api/users, /users
+        
+        # User Service - Generic route for /api/users/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?<segment>.*), /users/$\{segment}
+        
+        # Product Service - Generic route for all product endpoints
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - RewritePath=/api/products/(?<segment>.*), /products/$\{segment}
+        
+        # Design Service - Exact match for /api/designs
+        - id: design-service-exact
+          uri: lb://design-service
+          predicates:
+            - Path=/api/designs
+          filters:
+            - RewritePath=/api/designs, /designs
+        
+        # Design Service - Generic route for /api/designs/**
+        - id: design-service
+          uri: lb://design-service
+          predicates:
+            - Path=/api/designs/**
+          filters:
+            - RewritePath=/api/designs/(?<segment>.*), /designs/$\{segment}
+        
+        # Cart Service - Handle both /api/cart and /api/cart/**
+        - id: cart-service-exact
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/cart
+          filters:
+            - RewritePath=/api/cart, /cart
+        
+        - id: cart-service
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - RewritePath=/api/cart/(?<segment>.*), /cart/$\{segment}
+        
+        # Order Service - Exact match for /api/orders
+        - id: order-service-exact
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders
+          filters:
+            - RewritePath=/api/orders, /orders
+        
+        # Order Service - Generic route for /api/orders/**
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - RewritePath=/api/orders/(?<segment>.*), /orders/$\{segment}
+        
+        # Payment Service - Exact match for /api/payments
+        - id: payment-service-exact
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments
+          filters:
+            - RewritePath=/api/payments, /payments
+        
+        # Payment Service - Generic route for /api/payments/**
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - RewritePath=/api/payments/(?<segment>.*), /payments/$\{segment}
+        
+        # Inventory Service
+        - id: inventory-service
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - RewritePath=/api/inventory/(?<segment>.*), /inventory/$\{segment}
+        
+        # Statistics Service - Exact match for /api/statistics
+        - id: statistics-service-exact
+          uri: lb://statistics-service
+          predicates:
+            - Path=/api/statistics
+          filters:
+            - RewritePath=/api/statistics, /statistics
+        
+        # Statistics Service - Generic route for /api/statistics/**
+        - id: statistics-service
+          uri: lb://statistics-service
+          predicates:
+            - Path=/api/statistics/**
+          filters:
+            - RewritePath=/api/statistics/(?<segment>.*), /statistics/$\{segment}
+        
+        # Admin routes
+        - id: admin-auth-login
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/admin/login
+          filters:
+            - RewritePath=/api/admin/login, /admin/login
+        
+        - id: admin-auth-check
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/admin/check-auth
+          filters:
+            - RewritePath=/api/admin/check-auth, /admin/check-auth
+        
+        # Admin Users - Exact match for /api/admin/users
+        - id: admin-users-exact
+          uri: lb://user-service
+          predicates:
+            - Path=/api/admin/users
+          filters:
+            - RewritePath=/api/admin/users, /users/admin/users
+        
+        # Admin Users - Generic route for /api/admin/users/**
+        - id: admin-users
+          uri: lb://user-service
+          predicates:
+            - Path=/api/admin/users/**
+          filters:
+            - RewritePath=/api/admin/users/(?<segment>.*), /users/admin/users/$\{segment}
+        
+        # Admin Products - Exact match for /api/admin/products
+        - id: admin-products-exact
+          uri: lb://product-service
+          predicates:
+            - Path=/api/admin/products
+          filters:
+            - RewritePath=/api/admin/products, /products/admin/products
+        
+        # Admin Products - Generic route for /api/admin/products/**
+        - id: admin-products
+          uri: lb://product-service
+          predicates:
+            - Path=/api/admin/products/**
+          filters:
+            - RewritePath=/api/admin/products/(?<segment>.*), /products/admin/products/$\{segment}
+        
+        # Admin Inventory - Exact match for /api/admin/inventory
+        - id: admin-inventory-exact
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/admin/inventory
+          filters:
+            - RewritePath=/api/admin/inventory, /inventory/admin/inventory
+        
+        # Admin Inventory - Generic route for /api/admin/inventory/**
+        - id: admin-inventory
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/admin/inventory/**
+          filters:
+            - RewritePath=/api/admin/inventory/(?<segment>.*), /inventory/admin/inventory/$\{segment}
+        
+        # Admin Orders - Exact match for /api/admin/orders
+        - id: admin-orders-exact
+          uri: lb://order-service
+          predicates:
+            - Path=/api/admin/orders
+          filters:
+            - RewritePath=/api/admin/orders, /orders/admin/orders
+        
+        # Admin Orders - Generic route for /api/admin/orders/**
+        - id: admin-orders
+          uri: lb://order-service
+          predicates:
+            - Path=/api/admin/orders/**
+          filters:
+            - RewritePath=/api/admin/orders/(?<segment>.*), /orders/admin/orders/$\{segment}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    # Retry configuration - services will retry connecting to Eureka
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 10
+    registry-fetch-interval-seconds: 10
+  instance:
+    # Don't fail startup if Eureka is not available
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    # Use IP address instead of hostname to avoid DNS resolution issues
+    prefer-ip-address: true
+    hostname: localhost
+

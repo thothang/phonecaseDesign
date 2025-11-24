@@ -1,0 +1,7 @@
+mkdir src
+mkdir src\config src\controllers src\services src\database src\middleware src\routes src\utils
+mkdir src\database\models
+
+#Power shell
+mkdir -Path 'src/config', 'src/controllers', 'src/services', 'src/database/models', 'src/middleware', 'src/routes', 'src/utils'
+New-Item -ItemType File -Path 'config/config.ts', 'controllers/AuthController.ts', 'services/RabbitMQService.ts', 'database/models/UserModel.ts', 'database/connection.ts', 'database/index.ts', 'middleware/index.ts', 'routes/authRoutes.ts', 'utils/index.ts', 'server.ts'
